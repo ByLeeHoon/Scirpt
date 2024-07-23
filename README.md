@@ -9,7 +9,7 @@
     <form id="dataForm">
         <label for="data">Dados:</label>
         <input type="text" id="data" name="data">
-        <button type="submit">Enviar</button>
+        <button type="submit">test</button>
     </form>
 
     <script>
