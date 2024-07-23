@@ -9,14 +9,14 @@
     <form id="dataForm">
         <label for="data">Dados:</label>
         <input type="text" id="data" name="data">
-        <button type="submit">Enviar</button>
+        <button type="submit">send</button>
     </form>
 
     <script>
         document.getElementById('dataForm').addEventListener('submit', async function(event) {
             event.preventDefault();
             const data = document.getElementById('data').value;
-            const response = await fetch('https://api.github.com/repos/SEU_USUARIO/SEU_REPOSITORIO/dispatches', {
+            const response = await fetch('https://api.github.com/repos/ByLeeHoon/Script/dispatches', {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/vnd.github.v3+json',
