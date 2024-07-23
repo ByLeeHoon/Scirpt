@@ -1,5 +1,6 @@
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 -- Variáveis para armazenar os toques e o estado de gravação
 local isRecording = false
@@ -31,6 +32,18 @@ local function playTouches()
         if not isPlaying then break end
         print("Reproduzindo toque: " .. touch)
         -- Simular o toque (aqui você pode adicionar a lógica para simular o toque no jogo)
+        local humanoid = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            if touch == "W" then
+                humanoid:Move(Vector3.new(0, 0, -1), true)
+            elseif touch == "A" then
+                humanoid:Move(Vector3.new(-1, 0, 0), true)
+            elseif touch == "S" then
+                humanoid:Move(Vector3.new(0, 0, 1), true)
+            elseif touch == "D" then
+                humanoid:Move(Vector3.new(1, 0, 0), true)
+            end
+        end
         wait(0.5) -- Ajuste o tempo de espera conforme necessário
     end
     isPlaying = false
@@ -55,156 +68,89 @@ local screenGui = Instance.new("ScreenGui", Players.LocalPlayer:WaitForChild("Pl
 
 -- Criar e configurar botão de iniciar gravação
 local startButton = Instance.new("TextButton", screenGui)
-startButton.Size = UDim2.new(0, 200, 0, 50)
-startButton.Position = UDim2.new(0.5, -100, 0.5, -120)
-startButton.Text = "Iniciar Gravação"
+startButton.Size = UDim2.new(0, 100, 0, 50)
+startButton.Position = UDim2.new(0.5, -150, 0.5, -60)
+startButton.Text = "Gravar"
 startButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
 startButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 startButton.Font = Enum.Font.SourceSansBold
-startButton.TextSize = 24
+startButton.TextSize = 18
 startButton.MouseButton1Click:Connect(startRecording)
 
 -- Criar e configurar botão de parar gravação
 local stopButton = Instance.new("TextButton", screenGui)
-stopButton.Size = UDim2.new(0, 200, 0, 50)
-stopButton.Position = UDim2.new(0.5, -100, 0.5, -60)
-stopButton.Text = "Parar Gravação"
+stopButton.Size = UDim2.new(0, 100, 0, 50)
+stopButton.Position = UDim2.new(0.5, 50, 0.5, -60)
+stopButton.Text = "Salvar"
 stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 stopButton.Font = Enum.Font.SourceSansBold
-stopButton.TextSize = 24
+stopButton.TextSize = 18
 stopButton.MouseButton1Click:Connect(stopRecording)
 
 -- Criar e configurar botão de iniciar reprodução
 local playButton = Instance.new("TextButton", screenGui)
-playButton.Size = UDim2.new(0, 200, 0, 50)
-playButton.Position = UDim2.new(0.5, -100, 0.5, 0)
+playButton.Size = UDim2.new(0, 100, 0, 50)
+playButton.Position = UDim2.new(0.5, -150, 0.5, 10)
 playButton.Text = "Start"
 playButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
 playButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 playButton.Font = Enum.Font.SourceSansBold
-playButton.TextSize = 24
+playButton.TextSize = 18
 playButton.MouseButton1Click:Connect(playTouches)
 
 -- Criar e configurar botão de parar reprodução
 local stopPlayButton = Instance.new("TextButton", screenGui)
-stopPlayButton.Size = UDim2.new(0, 200, 0, 50)
-stopPlayButton.Position = UDim2.new(0.5, -100, 0.5, 60)
+stopPlayButton.Size = UDim2.new(0, 100, 0, 50)
+stopPlayButton.Position = UDim2.new(0.5, 50, 0.5, 10)
 stopPlayButton.Text = "Stop"
 stopPlayButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
 stopPlayButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 stopPlayButton.Font = Enum.Font.SourceSansBold
-stopPlayButton.TextSize = 24
+stopPlayButton.TextSize = 18
 stopPlayButton.MouseButton1Click:Connect(stopPlaying)
 
 -- Adicionar um fundo para a interface
 local background = Instance.new("Frame", screenGui)
-background.Size = UDim2.new(1, 0, 1, 0)
+background.Size = UDim2.new(0, 300, 0, 150)
+background.Position = UDim2.new(0.5, -150, 0.5, -75)
 background.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 background.BackgroundTransparency = 0.5
 background.ZIndex = -1
-local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
 
--- Variáveis para armazenar os toques e o estado de gravação
-local isRecording = false
-local isPlaying = false
-local touches = {}
+-- Tornar a interface movível
+local dragging
+local dragInput
+local dragStart
+local startPos
 
--- Função para iniciar a gravação
-local function startRecording()
-    isRecording = true
-    touches = {}
-    print("Gravação iniciada")
+local function update(input)
+    local delta = input.Position - dragStart
+    background.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
 end
 
--- Função para parar a gravação e salvar os toques
-local function stopRecording()
-    isRecording = false
-    print("Gravação parada")
-    -- Aqui você pode salvar os toques em um local desejado
-    for i, touch in ipairs(touches) do
-        print("Toque " .. i .. ": " .. touch)
-    end
-end
+background.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = background.Position
 
--- Função para reproduzir os toques gravados
-local function playTouches()
-    isPlaying = true
-    print("Reprodução iniciada")
-    for i, touch in ipairs(touches) do
-        if not isPlaying then break end
-        print("Reproduzindo toque: " .. touch)
-        -- Simular o toque (aqui você pode adicionar a lógica para simular o toque no jogo)
-        wait(0.5) -- Ajuste o tempo de espera conforme necessário
-    end
-    isPlaying = false
-    print("Reprodução finalizada")
-end
-
--- Função para parar a reprodução dos toques
-local function stopPlaying()
-    isPlaying = false
-    print("Reprodução parada")
-end
-
--- Evento para detectar toques
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if isRecording and not gameProcessed then
-        table.insert(touches, input.KeyCode.Name)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
     end
 end)
 
--- Criar interface do usuário
-local screenGui = Instance.new("ScreenGui", Players.LocalPlayer:WaitForChild("PlayerGui"))
+background.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
 
--- Criar e configurar botão de iniciar gravação
-local startButton = Instance.new("TextButton", screenGui)
-startButton.Size = UDim2.new(0, 200, 0, 50)
-startButton.Position = UDim2.new(0.5, -100, 0.5, -120)
-startButton.Text = "Iniciar Gravação"
-startButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-startButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-startButton.Font = Enum.Font.SourceSansBold
-startButton.TextSize = 24
-startButton.MouseButton1Click:Connect(startRecording)
-
--- Criar e configurar botão de parar gravação
-local stopButton = Instance.new("TextButton", screenGui)
-stopButton.Size = UDim2.new(0, 200, 0, 50)
-stopButton.Position = UDim2.new(0.5, -100, 0.5, -60)
-stopButton.Text = "Parar Gravação"
-stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-stopButton.Font = Enum.Font.SourceSansBold
-stopButton.TextSize = 24
-stopButton.MouseButton1Click:Connect(stopRecording)
-
--- Criar e configurar botão de iniciar reprodução
-local playButton = Instance.new("TextButton", screenGui)
-playButton.Size = UDim2.new(0, 200, 0, 50)
-playButton.Position = UDim2.new(0.5, -100, 0.5, 0)
-playButton.Text = "Start"
-playButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-playButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-playButton.Font = Enum.Font.SourceSansBold
-playButton.TextSize = 24
-playButton.MouseButton1Click:Connect(playTouches)
-
--- Criar e configurar botão de parar reprodução
-local stopPlayButton = Instance.new("TextButton", screenGui)
-stopPlayButton.Size = UDim2.new(0, 200, 0, 50)
-stopPlayButton.Position = UDim2.new(0.5, -100, 0.5, 60)
-stopPlayButton.Text = "Stop"
-stopPlayButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
-stopPlayButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-stopPlayButton.Font = Enum.Font.SourceSansBold
-stopPlayButton.TextSize = 24
-stopPlayButton.MouseButton1Click:Connect(stopPlaying)
-
--- Adicionar um fundo para a interface
-local background = Instance.new("Frame", screenGui)
-background.Size = UDim2.new(1, 0, 1, 0)
-background.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-background.BackgroundTransparency = 0.5
-background.ZIndex = -1
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
