@@ -20,7 +20,7 @@
                 method: 'POST',
                 headers: {
                     'Accept': 'application/vnd.github.v3+json',
-                    'Authorization': 'token SEU_TOKEN',
+                    'Authorization': 'token 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',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
