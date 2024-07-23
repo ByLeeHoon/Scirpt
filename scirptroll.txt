@@ -1,43 +1,63 @@
---ui--
-
-local Lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/7yhx/kwargs_Ui_Library/main/source.lua"))()
-
--- Script de rollback para Anime Defenders com botões de ativar/desativar
 local Players = game:GetService("Players")
-local ItemName = "coin" -- Nome do item (ajuste conforme necessário)
-local RollbackEnabled = false
+local UserInputService = game:GetService("UserInputService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Função para salvar a posição atual do jogador
-function SavePosition(player)
-    player:SetAttribute("SavedPosition_" .. ItemName, player.Character.HumanoidRootPart.Position)
+-- Variáveis para armazenar os toques e o estado de gravação
+local isRecording = false
+local touches = {}
+
+-- Função para iniciar a gravação
+local function startRecording()
+    isRecording = true
+    touches = {}
+    print("Gravação iniciada")
 end
 
--- Função para restaurar a posição do jogador
-function RestorePosition(player)
-    local savedPosition = player:GetAttribute("SavedPosition_" .. ItemName)
-    if savedPosition then
-        player.Character.HumanoidRootPart.CFrame = CFrame.new(savedPosition)
+-- Função para parar a gravação e salvar os toques
+local function stopRecording()
+    isRecording = false
+    print("Gravação parada")
+    -- Aqui você pode salvar os toques em um local desejado
+    for i, touch in ipairs(touches) do
+        print("Toque " .. i .. ": " .. touch)
     end
 end
 
--- Conecte as funções aos eventos do jogador
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        if RollbackEnabled then
-            SavePosition(player)
-        end
-    end)
-end)
-
-Players.PlayerRemoving:Connect(function(player)
-    player:SetAttribute("SavedPosition_" .. ItemName, nil)
-end)
-
--- Conecte o evento da tecla "F" para alternar o estado do rollback
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
-    if input.KeyCode == Enum.KeyCode.F and not gameProcessedEvent then
-        RollbackEnabled = not RollbackEnabled
-        local status = RollbackEnabled and "ativado" or "desativado"
-        print("Rollback " .. status .. " para o item '" .. ItemName .. "'!")
+-- Evento para detectar toques
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if isRecording and not gameProcessed then
+        table.insert(touches, input.KeyCode.Name)
     end
 end)
+
+-- Criar interface do usuário
+local screenGui = Instance.new("ScreenGui", Players.LocalPlayer:WaitForChild("PlayerGui"))
+
+-- Criar e configurar botão de iniciar gravação
+local startButton = Instance.new("TextButton", screenGui)
+startButton.Size = UDim2.new(0, 200, 0, 50)
+startButton.Position = UDim2.new(0.5, -100, 0.5, -60)
+startButton.Text = "Iniciar Gravação"
+startButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+startButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+startButton.Font = Enum.Font.SourceSansBold
+startButton.TextSize = 24
+startButton.MouseButton1Click:Connect(startRecording)
+
+-- Criar e configurar botão de parar gravação
+local stopButton = Instance.new("TextButton", screenGui)
+stopButton.Size = UDim2.new(0, 200, 0, 50)
+stopButton.Position = UDim2.new(0.5, -100, 0.5, 10)
+stopButton.Text = "Parar Gravação"
+stopButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+stopButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopButton.Font = Enum.Font.SourceSansBold
+stopButton.TextSize = 24
+stopButton.MouseButton1Click:Connect(stopRecording)
+
+-- Adicionar um fundo para a interface
+local background = Instance.new("Frame", screenGui)
+background.Size = UDim2.new(1, 0, 1, 0)
+background.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+background.BackgroundTransparency = 0.5
+background.ZIndex = -1
