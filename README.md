@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enviar Dados</title>
+    <title>Envi Dados</title>
 </head>
 <body>
     <form id="dataForm">
